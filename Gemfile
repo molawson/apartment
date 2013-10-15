@@ -14,6 +14,8 @@ platform :ruby do
   gem 'mysql2', '~> 0.3.10'
   gem 'pg',     '>= 0.11.0'
   gem 'sqlite3'
+  gem 'tiny_tds'
+  gem 'activerecord-sqlserver-adapter'
 end
 
 platform :jruby do
