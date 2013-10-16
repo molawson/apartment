@@ -41,6 +41,10 @@ shared_examples_for "a generic apartment adapter" do
     end
   end
 
+  describe "#default_database" do
+    its(:default_database){ should == config[:database] }
+  end
+
   describe "#drop" do
     it "should remove the db" do
       subject.drop db1

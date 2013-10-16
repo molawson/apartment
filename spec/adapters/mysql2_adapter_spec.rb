@@ -18,10 +18,6 @@ describe Apartment::Adapters::Mysql2Adapter do
 
       it_should_behave_like "a generic apartment adapter"
 
-      describe "#default_database" do
-        its(:default_database){ should == config[:database] }
-      end
-
       describe "#init" do
         include Apartment::Spec::AdapterRequirements
 

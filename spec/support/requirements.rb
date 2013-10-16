@@ -39,7 +39,6 @@ module Apartment
             Apartment.connection_class.remove_connection(klass)
             klass.reset_table_name
           end
-          ActiveRecord::Base.clear_all_connections!
         end
       end
 

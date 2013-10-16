@@ -4,11 +4,14 @@ module Apartment
   module Adapters
     class AbstractAdapter
 
+      attr_reader :current_database
+
       #   @constructor
       #   @param {Hash} config Database config
       #
       def initialize(config)
         @config = config
+        @current_database = environmentify(default_database)
       end
 
       #   Create a new database, import schema, seed if appropriate
@@ -28,12 +31,12 @@ module Apartment
         end
       end
 
-      #   Get the current database name
+      #   Get the default database name
       #
-      #   @return {String} current database name
+      #   @return {String} default database name
       #
-      def current_database
-        Apartment.connection.current_database
+      def default_database
+        @config[:database]
       end
 
       #   Note alias_method here doesn't work with inheritence apparently ??
@@ -47,7 +50,7 @@ module Apartment
       #   @param {String} database Database name
       #
       def drop(database)
-        # Apartment.connection.drop_database   note that drop_database will not throw an exception, so manually execute
+        ActiveRecord::Base.clear_all_connections!
         Apartment.connection.execute("DROP DATABASE #{environmentify(database)}" )
 
       rescue *rescuable_exceptions
@@ -79,7 +82,7 @@ module Apartment
       #   Reset the database connection to the default
       #
       def reset
-        Apartment.establish_connection @config
+        connect_to_new default_database
       end
 
       #   Switch to new connection (or schema if appopriate)
@@ -120,9 +123,8 @@ module Apartment
       #   @param {String} database Database name
       #
       def connect_to_new(database)
-        Apartment.establish_connection multi_tenantify(database)
-        Apartment.connection.active?   # call active? to manually check if this connection is valid
-
+        Apartment::ConnectionPool.new.use(multi_tenantify(database))
+        @current_database = environmentify(database)
       rescue *rescuable_exceptions
         raise DatabaseNotFound, "The database #{environmentify(database)} cannot be found."
       end

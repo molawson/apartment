@@ -30,18 +30,11 @@ module Apartment
     end
 
     class Mysql2SchemaAdapter < AbstractAdapter
-      attr_reader :default_database
-
-      def initialize(config)
-        @default_database = config[:database]
-
-        super
-      end
 
       #   Reset current_database to the default_database
       #
       def reset
-        Apartment.connection.execute "use #{default_database}"
+        use default_database
       end
 
       #   Set the table_name to always use the default database for excluded models
@@ -57,7 +50,7 @@ module Apartment
       def connect_to_new(database)
         return reset if database.nil?
 
-        Apartment.connection.execute "use #{environmentify(database)}"
+        use environmentify(database)
 
       rescue ActiveRecord::StatementInvalid
         Apartment::Database.reset
@@ -76,6 +69,11 @@ module Apartment
           # Not sure why, but Delayed::Job somehow ignores table_name_prefix...  so we'll just manually set table name instead
           klass.table_name = "#{default_database}.#{table_name}"
         end
+      end
+
+      def use(database)
+        Apartment.connection.execute "use #{database}"
+        @current_database = database
       end
     end
   end

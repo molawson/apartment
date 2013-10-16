@@ -9,7 +9,6 @@ module Apartment
     class Sqlite3Adapter < AbstractAdapter
       def initialize(config)
         @default_dir = File.expand_path(File.dirname(config[:database]))
-
         super
       end
 
@@ -21,7 +20,12 @@ module Apartment
       end
 
       def current_database
-        File.basename(Apartment.connection.instance_variable_get(:@config)[:database], '.sqlite3')
+        File.basename(super, '.sqlite3')
+      end
+
+      def reset
+        Apartment.establish_connection @config
+        @current_database = @config[:database]
       end
 
       protected

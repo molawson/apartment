@@ -69,6 +69,7 @@ module Apartment
   autoload :Database, 'apartment/database'
   autoload :Migrator, 'apartment/migrator'
   autoload :Reloader, 'apartment/reloader'
+  autoload :ConnectionPool, 'apartment/connection_pool'
 
   module Adapters
     autoload :AbstractAdapter, 'apartment/adapters/abstract_adapter'
