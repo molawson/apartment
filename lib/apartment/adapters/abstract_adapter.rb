@@ -61,6 +61,19 @@ module Apartment
       #
       #   @param {String?} database Database or schema to connect to
       #
+      def base_process(database = nil)
+        current_db = current_database
+        base_switch(database)
+        yield if block_given?
+
+      ensure
+        base_switch(current_db) rescue base_switch(default_database)
+      end
+
+      #   Connect to db, do your biz, switch back to previous db
+      #
+      #   @param {String?} database Database or schema to connect to
+      #
       def process(database = nil)
         current_db = current_database
         switch(database)
@@ -98,6 +111,18 @@ module Apartment
         end
       end
 
+      #   Create a new base connection
+      #
+      #   @param {String} database Database name
+      #
+      def base_switch(database = nil)
+        database ||= default_database
+
+        base_connect_to_new(database).tap do
+          ActiveRecord::Base.connection.clear_query_cache
+        end
+      end
+
       #   Load the rails seed file into the db
       #
       def seed_data
@@ -118,13 +143,26 @@ module Apartment
         raise DatabaseExists, "The database #{environmentify(database)} already exists."
       end
 
-      #   Connect to new database
+      #   Connect to new database using connection pooling
       #
       #   @param {String} database Database name
       #
       def connect_to_new(database)
         Apartment::ConnectionPool.new.use(multi_tenantify(database))
         @current_database = environmentify(database)
+      rescue *rescuable_exceptions
+        raise DatabaseNotFound, "The database #{environmentify(database)} cannot be found."
+      end
+
+      #   Connect to new database
+      #
+      #   @param {String} database Database name
+      #
+      def base_connect_to_new(database)
+        Apartment.establish_connection multi_tenantify(database)
+        Apartment.connection.active?   # call active? to manually check if this connection is valid
+        @current_database = environmentify(database)
+
       rescue *rescuable_exceptions
         raise DatabaseNotFound, "The database #{environmentify(database)} cannot be found."
       end

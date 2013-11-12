@@ -67,6 +67,8 @@ module Apartment
         @current_database || Apartment.default_schema
       end
 
+      alias_method :base_process, :process
+
     protected
 
       #   Set schema search path to new schema

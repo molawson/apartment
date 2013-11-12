@@ -43,6 +43,8 @@ module Apartment
         Apartment.excluded_models.each{ |model| process_excluded_model(model) }
       end
 
+      alias_method :base_process, :process
+
     protected
 
       #   Set schema current_database to new db
