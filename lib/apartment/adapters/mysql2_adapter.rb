@@ -30,7 +30,7 @@ module Apartment
       def connect_to_new(tenant = nil)
         super
       rescue Mysql2::Error
-        Apartment::Tenant.reset
+        Apartment::Tenant.reset unless tenant == default_tenant
         raise TenantNotFound, "Cannot find tenant #{environmentify(tenant)}"
       end
     end
@@ -46,7 +46,7 @@ module Apartment
       #   Reset current tenant to the default_tenant
       #
       def reset
-        Apartment.connection.execute "use `#{default_tenant}`"
+        use default_tenant
       end
 
       #   Set the table_name to always use the default tenant for excluded models
@@ -55,6 +55,8 @@ module Apartment
         Apartment.excluded_models.each{ |model| process_excluded_model(model) }
       end
 
+      alias_method :base_process, :process
+
     protected
 
       #   Connect to new tenant
@@ -62,7 +64,7 @@ module Apartment
       def connect_to_new(tenant)
         return reset if tenant.nil?
 
-        Apartment.connection.execute "use `#{environmentify(tenant)}`"
+        use environmentify(tenant)
 
       rescue ActiveRecord::StatementInvalid
         Apartment::Tenant.reset
@@ -76,6 +78,11 @@ module Apartment
 
           klass.table_name = "#{default_tenant}.#{table_name}"
         end
+      end
+
+      def use(tenant)
+        Apartment.connection.execute "use #{tenant}"
+        @current_tenant = tenant
       end
     end
   end

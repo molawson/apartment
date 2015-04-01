@@ -19,10 +19,10 @@ module Apartment
       #
       #   @param {String} database Database name
       #
-      def connect_to_new(database)
+      def connect_to_new(tenant)
         super
       rescue TenantNotFound
-        Apartment::Tenant.reset
+        Apartment::Tenant.reset unless tenant == default_tenant
         raise TenantNotFound, "Cannot find database #{environmentify(database)}"
       end
     end

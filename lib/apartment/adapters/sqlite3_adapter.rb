@@ -23,7 +23,12 @@ module Apartment
       end
 
       def current
-        File.basename(Apartment.connection.instance_variable_get(:@config)[:database], '.sqlite3')
+        File.basename(super, '.sqlite3')
+      end
+
+      def reset
+        Apartment.establish_connection @config
+        @current_tenant = @config[:database]
       end
 
     protected

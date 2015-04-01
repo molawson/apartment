@@ -1,4 +1,5 @@
 require 'apartment/deprecation'
+require 'apartment/connection_pool'
 
 module Apartment
   module Adapters
@@ -68,6 +69,7 @@ module Apartment
       #
       def drop(tenant)
         # Apartment.connection.drop_database   note that drop_database will not throw an exception, so manually execute
+        Apartment.connection.clear_all_connections!
         Apartment.connection.execute("DROP DATABASE #{environmentify(tenant)}" )
 
       rescue *rescuable_exceptions
@@ -104,6 +106,23 @@ module Apartment
           Apartment::Deprecation.warn("[Deprecation Warning] `switch` now requires a block reset to the default tenant after the block. Please use `switch!` instead if you don't want this")
           switch!(tenant)
         end
+      end
+
+      def base_switch!(tenant = nil)
+        tenant ||= default_tenant
+
+        base_connect_to_new(tenant).tap do
+          Apartment.connection.clear_query_cache
+        end
+      end
+
+      def base_switch(tenant = nil)
+        current_t = current
+        base_switch!(tenant)
+        yield if block_given?
+
+      ensure
+        base_switch(current_t) rescue base_switch(default_tenant)
       end
 
       #   [Deprecated]
@@ -155,14 +174,25 @@ module Apartment
         raise TenantExists, "The tenant #{environmentify(tenant)} already exists."
       end
 
-      #   Connect to new tenant
+      #   Connect to new tenant with connection pooling
       #
       #   @param {String} tenant Database name
       #
       def connect_to_new(tenant)
+        Apartment::ConnectionPool.new.use(multi_tenantify(tenant))
+
+      rescue *rescuable_exceptions
+        raise TenantNotFound, "The tenant #{environmentify(tenant)} cannot be found."
+      end
+
+      #   Connect to new tenant
+      #
+      #   @param {String} tenant Database name
+      #
+      def base_connect_to_new(tenant)
         Apartment.establish_connection multi_tenantify(tenant)
         Apartment.connection.active?   # call active? to manually check if this connection is valid
-
+        @current_tenant = environmentify(tenant)
       rescue *rescuable_exceptions
         raise TenantNotFound, "The tenant #{environmentify(tenant)} cannot be found."
       end

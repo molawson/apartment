@@ -77,6 +77,8 @@ module Apartment
         @current || default_tenant
       end
 
+      alias_method :base_process, :process
+
     protected
 
       #   Set schema search path to new schema
