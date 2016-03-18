@@ -5,10 +5,6 @@ module Apartment
 
     def_delegators :connection_handler, :pool_exists?, :remove_connection
 
-    def tenant
-      Apartment::Database.current_database
-    end
-
     def use(spec)
       klass = class_for_database(spec[:database])
       if pool_exists?(klass.name)
