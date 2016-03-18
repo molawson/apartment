@@ -30,7 +30,7 @@ module Apartment
 
     def clear_query_cache(database)
       klass = class_for_database database
-      klass.connection.clear_query_cache!
+      klass.connection.clear_query_cache
     end
 
     private
