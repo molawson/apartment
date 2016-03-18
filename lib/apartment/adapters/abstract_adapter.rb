@@ -106,9 +106,9 @@ module Apartment
         # Just connect to default db and return
         return reset if database.nil?
 
-        connect_to_new(database).tap do
-          ActiveRecord::Base.connection.clear_query_cache
-        end
+        connect_to_new(database)
+      ensure
+        clear_query_caches database
       end
 
       #   Create a new base connection
@@ -118,9 +118,9 @@ module Apartment
       def base_switch(database = nil)
         database ||= default_database
 
-        base_connect_to_new(database).tap do
-          ActiveRecord::Base.connection.clear_query_cache
-        end
+        base_connect_to_new(database)
+      ensure
+        clear_query_caches database
       end
 
       #   Load the rails seed file into the db
@@ -131,6 +131,11 @@ module Apartment
       alias_method :seed, :seed_data
 
     protected
+
+      def clear_query_caches(database)
+        Apartment::ConnectionPool.new.clear_query_cache database
+        ActiveRecord::Base.connection.clear_query_cache
+      end
 
       #   Create the database
       #

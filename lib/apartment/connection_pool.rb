@@ -5,6 +5,10 @@ module Apartment
 
     def_delegators :connection_handler, :pool_exists?, :remove_connection
 
+    def tenant
+      Apartment::Database.current_database
+    end
+
     def use(spec)
       klass = class_for_database(spec[:database])
       if pool_exists?(klass.name)
@@ -12,6 +16,7 @@ module Apartment
       else
         establish_connection(klass, spec)
       end
+      klass.connection.enable_query_cache!
     end
 
     def class_for_model(klass)
@@ -21,6 +26,11 @@ module Apartment
         database = Apartment::Database.current_database
         class_for_database(database)
       end
+    end
+
+    def clear_query_cache(database)
+      klass = class_for_database database
+      klass.connection.clear_query_cache!
     end
 
     private
