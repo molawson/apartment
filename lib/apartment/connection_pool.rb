@@ -42,7 +42,9 @@ module Apartment
     end
 
     def establish_connection(klass, spec)
-      klass.establish_connection(spec).connection
+      con = klass.establish_connection(spec).connection
+      con.enable_query_cache!
+      con
     rescue => error
       remove_connection(klass) if pool_exists?(klass.name)
       raise error
