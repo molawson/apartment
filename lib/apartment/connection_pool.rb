@@ -8,10 +8,10 @@ module Apartment
     def use(spec)
       klass = class_for_database(spec[:database])
       connection = if pool_exists?(klass.name)
-        klass.connection
-      else
-        establish_connection(klass, spec)
-      end
+                     klass.connection
+                   else
+                     establish_connection(klass, spec)
+                   end
       connection.enable_query_cache!
       connection
     end
@@ -26,6 +26,7 @@ module Apartment
     end
 
     def clear_query_cache(database)
+      return unless database.present?
       klass = class_for_database database
       klass.connection.clear_query_cache
     end
