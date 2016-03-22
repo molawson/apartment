@@ -12,7 +12,7 @@ module Apartment
                    else
                      establish_connection(klass, spec)
                    end
-      connection.enable_query_cache!
+      connection.enable_query_cache! if spec.fetch(:use_query_cache) { true }
       connection
     end
 
