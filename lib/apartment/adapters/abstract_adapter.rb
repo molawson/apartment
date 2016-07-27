@@ -50,7 +50,7 @@ module Apartment
       #   Note alias_method here doesn't work with inheritence apparently ??
       #
       def current
-        Apartment.connection.current_database
+        @current ||= Apartment.connection.current_database
       end
 
       #   Return the original public tenant
@@ -82,9 +82,11 @@ module Apartment
       def switch!(tenant = nil)
         return reset if tenant.nil?
 
-        connect_to_new(tenant).tap do
-          Apartment.connection.clear_query_cache
-        end
+        @current = nil
+
+        connect_to_new(tenant)
+      ensure
+        clear_query_caches tenant
       end
 
       #   Connect to tenant, do your biz, switch back to previous tenant
@@ -145,6 +147,11 @@ module Apartment
       alias_method :seed, :seed_data
 
     protected
+
+      def clear_query_caches(tenant)
+        Apartment::ConnectionPool.new.clear_query_cache tenant
+        ActiveRecord::Base.connection.clear_query_cache
+      end
 
       def process_excluded_model(excluded_model)
         excluded_model.constantize.establish_connection @config

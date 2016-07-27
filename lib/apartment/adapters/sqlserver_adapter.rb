@@ -1,6 +1,8 @@
+require 'apartment/adapters/abstract_adapter'
+
 module Apartment
 
-  module Database
+  module Tenant
 
     def self.sqlserver_adapter(config)
       config['default_schema'] = 'dbo' if config['default_schema'].eql?('public')
@@ -12,7 +14,7 @@ module Apartment
 
     class SqlserverAdapter < AbstractAdapter
 
-    protected
+      protected
 
       #   Connect to new database
       #   Abstract adapter will catch generic ActiveRecord error
@@ -20,11 +22,11 @@ module Apartment
       #
       #   @param {String} database Database name
       #
-      def connect_to_new(database)
-        super
-      rescue TinyTds::Error
-        Apartment::Database.reset
-        raise DatabaseNotFound, "Cannot find database #{environmentify(database)}"
+      def connect_to_new(tenant)
+        Apartment::ConnectionPool.new.use multi_tenantify(tenant)
+      rescue TinyTds::Error => exception
+        Apartment::Tenant.reset unless tenant == default_tenant
+        raise_connect_error!(tenant, exception)
       end
     end
   end

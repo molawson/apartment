@@ -4,6 +4,7 @@ require 'forwardable'
 require 'active_record'
 require 'apartment/tenant'
 require 'apartment/deprecation'
+require 'apartment/connection_pool'
 
 module Apartment
 
