@@ -10,6 +10,7 @@ module Apartment
       #
       def initialize(config)
         @config = config
+        @current = environmentify default_tenant
       end
 
       #   Create a new tenant, import schema, seed if appropriate
@@ -58,7 +59,7 @@ module Apartment
       #   @return {String} default tenant name
       #
       def default_tenant
-        @default_tenant || Apartment.default_tenant
+        @config[:database]
       end
       alias :default_schema :default_tenant # TODO deprecate default_schema
 
@@ -82,9 +83,8 @@ module Apartment
       def switch!(tenant = nil)
         return reset if tenant.nil?
 
-        @current = nil
-
         connect_to_new(tenant)
+        @current = environmentify tenant
       ensure
         clear_query_caches tenant
       end
