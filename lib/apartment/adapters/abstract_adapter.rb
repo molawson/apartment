@@ -93,11 +93,11 @@ module Apartment
       #
       #   @param {String?} tenant to connect to
       #
-      def switch(tenant = nil)
+      def switch(tenant = nil, base = false)
         if block_given?
           begin
             previous_tenant = current
-            switch!(tenant)
+            base ? base_switch!(tenant) : switch!(tenant)
             yield
 
           ensure
@@ -106,6 +106,14 @@ module Apartment
         else
           Apartment::Deprecation.warn("[Deprecation Warning] `switch` now requires a block reset to the default tenant after the block. Please use `switch!` instead if you don't want this")
           switch!(tenant)
+        end
+      end
+
+      def base_switch!(tenant = nil)
+        tenant ||= default_tenant
+
+        base_connect_to_new(tenant) do
+          clear_query_caches tenant
         end
       end
 
@@ -185,7 +193,7 @@ module Apartment
       #
       #   @param {String} tenant Database name
       #
-      def connect_to_new(tenant)
+      def base_connect_to_new(tenant)
         Apartment.establish_connection multi_tenantify(tenant)
         Apartment.connection.active?   # call active? to manually check if this connection is valid
       rescue *rescuable_exceptions => exception
