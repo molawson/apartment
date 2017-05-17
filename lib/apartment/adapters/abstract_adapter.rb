@@ -20,13 +20,15 @@ module Apartment
       def create(tenant)
         create_tenant(tenant)
 
-        switch(tenant) do
-          import_database_schema
+        switch(tenant, true) do
+          switch(tenant) do
+            import_database_schema
 
-          # Seed data if appropriate
-          seed_data if Apartment.seed_after_create
+            # Seed data if appropriate
+            seed_data if Apartment.seed_after_create
 
-          yield if block_given?
+            yield if block_given?
+          end
         end
       end
 
