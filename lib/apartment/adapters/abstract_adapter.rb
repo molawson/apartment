@@ -94,14 +94,15 @@ module Apartment
       #   @param {String?} tenant to connect to
       #
       def switch(tenant = nil, base = false)
+        perform_switch = -> (tenant) { base ? base_switch!(tenant) : switch!(tenant) }
         if block_given?
           begin
             previous_tenant = current
-            base ? base_switch!(tenant) : switch!(tenant)
+            perform_switch.(tenant)
             yield
 
           ensure
-            switch!(previous_tenant) rescue reset
+            perform_switch.(previous_tenant) rescue reset
           end
         else
           Apartment::Deprecation.warn("[Deprecation Warning] `switch` now requires a block reset to the default tenant after the block. Please use `switch!` instead if you don't want this")
