@@ -18,7 +18,7 @@ module Apartment
 
     def class_for_model(klass)
       if use_default_pool?(klass)
-        klass
+        Apartment.connection_class
       else
         database = Apartment::Tenant.current
         class_for_database(database)
@@ -57,9 +57,16 @@ module Apartment
     end
 
     def use_default_pool?(klass)
-      klass == ActiveRecord::Base ||
+      class_always_excluded?(klass) ||
         Apartment.use_schemas ||
         Apartment.excluded_models.include?(klass.name)
+    end
+
+    def class_always_excluded?(klass)
+      [
+        ActiveRecord::Base,
+        ActiveRecord::SchemaMigration,
+      ].include?(klass)
     end
   end
 end
