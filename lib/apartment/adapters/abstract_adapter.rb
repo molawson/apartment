@@ -195,7 +195,8 @@ module Apartment
       #   @param {String} tenant Database name
       #
       def connect_to_new(tenant)
-        Apartment.establish_connection multi_tenantify(tenant)
+        Apartment.connection_handler.establish_connection multi_tenantify(tenant)
+        connect_to_existing(tenant)
       end
 
       def connect_to_existing(tenant)

@@ -40,7 +40,7 @@ module Apartment
     def db_config_for(tenant)
       (tenants_with_config[tenant] || connection_config)
         .with_indifferent_access
-        .merge(tenant: tenant)
+        .merge(name: tenant)
     end
 
     # Whether or not db:migrate should also migrate tenants
