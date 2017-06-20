@@ -1,6 +1,7 @@
 require 'rails'
 require 'apartment/tenant'
 require 'apartment/reloader'
+require 'apartment/extensions/active_record/connection_handling'
 
 module Apartment
   class Railtie < Rails::Railtie
@@ -21,6 +22,12 @@ module Apartment
       end
 
       ActiveRecord::Migrator.migrations_paths = Rails.application.paths['db/migrate'].to_a
+    end
+
+    config.after_initialize do
+      class << ActiveRecord::Base
+        prepend Apartment::Extensions::ActiveRecord::ConnectionHandling
+      end
     end
 
     #   Hook into ActionDispatch::Reloader to ensure Apartment is properly initialized
