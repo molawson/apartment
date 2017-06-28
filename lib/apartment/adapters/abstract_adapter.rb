@@ -179,7 +179,7 @@ module Apartment
       end
 
       def connect(tenant)
-        if Apartment.connection_handler.connected?(tenant)
+        if Apartment.pool_exists?(tenant) && Apartment.connected?(tenant)
           connect_to_existing(tenant)
         else
           connect_to_new(tenant)

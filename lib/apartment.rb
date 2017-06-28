@@ -24,9 +24,15 @@ module Apartment
       :connection_specification_name=,
       :establish_connection
 
+    def_delegator :connection_handler, :connected?
+
     # configure apartment with available options
     def configure
       yield self if block_given?
+    end
+
+    def pool_exists?(tenant)
+      connection_handler.connection_pools.map(&:spec).map(&:name).include?(tenant)
     end
 
     def tenant_names
