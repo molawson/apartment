@@ -17,11 +17,22 @@ module Apartment
     attr_accessor(*ACCESSOR_METHODS)
     attr_writer(*WRITER_METHODS)
 
-    def_delegators :connection_class, :connection, :connection_config, :establish_connection
+    def_delegators :connection_class,
+      :connection_handler,
+      :connection,
+      :connection_config,
+      :connection_specification_name=,
+      :establish_connection
+
+    def_delegator :connection_handler, :connected?
 
     # configure apartment with available options
     def configure
       yield self if block_given?
+    end
+
+    def pool_exists?(tenant)
+      connection_handler.connection_pools.map(&:spec).map(&:name).include?(tenant)
     end
 
     def tenant_names
@@ -33,7 +44,9 @@ module Apartment
     end
 
     def db_config_for(tenant)
-      (tenants_with_config[tenant] || connection_config).with_indifferent_access
+      (tenants_with_config[tenant] || connection_config)
+        .with_indifferent_access
+        .merge(name: tenant)
     end
 
     # Whether or not db:migrate should also migrate tenants
